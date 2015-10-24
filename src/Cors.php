@@ -24,11 +24,11 @@ class Cors
     {
         $headers = array();
 
-        if (!$this->isCorsRequest($request)) {
+        if (!$this->app['cors.domain']->isCorsRequest($request)) {
             return array();
         }
 
-        if ($this->isPreflightRequest($request)) {
+        if ($this->app['cors.domain']->isPreflightRequest($request)) {
             $allowedMethods = $this->allowedMethods($allow);
             $requestMethod = $request->headers->get("Access-Control-Request-Method");
             if (!in_array($requestMethod, preg_split("/\s*,\s*/", $allowedMethods))) {
@@ -47,16 +47,6 @@ class Cors
         $headers["Access-Control-Allow-Credentials"] = $this->allowCredentials();
 
         return array_filter($headers);
-    }
-
-    private function isCorsRequest(Request $request)
-    {
-        return $request->headers->has("Origin");
-    }
-
-    private function isPreflightRequest(Request $request)
-    {
-        return $request->getMethod() === "OPTIONS" && $request->headers->has("Access-Control-Request-Method");
     }
 
     private function allowedMethods($allow)

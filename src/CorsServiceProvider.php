@@ -38,6 +38,10 @@ class CorsServiceProvider implements ServiceProviderInterface, BootableProviderI
         $app["cors.exposeHeaders"] = null;
 
         $app["cors"] = $app->protect(new Cors($app));
+
+        $app["cors.domain"] = function () {
+            return new Domain\Cors();
+        };
     }
 
     private function determineAllowedMethods(RouteCollection $routes)
