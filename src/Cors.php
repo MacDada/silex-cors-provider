@@ -2,6 +2,7 @@
 
 namespace JDesrosiers\Silex\Provider;
 
+use JDesrosiers\Silex\Provider\Domain\AllowOriginStrategy;
 use Pimple\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,22 +55,36 @@ class Cors
         return !is_null($this->app["cors.allowMethods"]) ? $this->app["cors.allowMethods"] : $allow;
     }
 
+    /**
+     * @param Request $request
+     * @return string
+     */
     private function allowOrigin(Request $request)
     {
-        if ($this->app["cors.allowOrigin"] === '*') {
-            $this->app["cors.allowOrigin"] = null;
-        }
+        $origin = $request->headers->get('Origin');
 
-        $origin = $request->headers->get("Origin");
-        if (is_null($this->app["cors.allowOrigin"])) {
-            $this->app["cors.allowOrigin"] = $origin;
-        }
-
-        return in_array($origin, preg_split('/\s+/', $this->app["cors.allowOrigin"])) ? $origin : "null";
+        return $this->getAllowOriginStrategy()->isOriginAllowed($origin)
+            ? $origin
+            : 'null';
     }
 
     private function allowCredentials()
     {
-        return $this->app["cors.allowCredentials"] === true ? "true" : null;
+        return true === $this->app['cors.allowCredentials'] ? 'true' : null;
+    }
+
+    /**
+     * @return Domain\AllowOriginStrategy
+     * @throws \UnexpectedValueException
+     */
+    private function getAllowOriginStrategy()
+    {
+        $strategy = $this->app['cors.allow_origin_strategy'];
+
+        if (!$this->app['cors.allow_origin_strategy'] instanceof Domain\AllowOriginStrategy) {
+            throw new \UnexpectedValueException();
+        }
+
+        return $strategy;
     }
 }

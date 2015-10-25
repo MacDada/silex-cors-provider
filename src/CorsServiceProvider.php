@@ -2,6 +2,8 @@
 
 namespace JDesrosiers\Silex\Provider;
 
+use JDesrosiers\Silex\Provider\Domain\AllowOriginStrategy\AllowAllStrategy;
+use JDesrosiers\Silex\Provider\Domain\AllowOriginStrategy\ExactHostStrategy;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Silex\Api\BootableProviderInterface;
@@ -41,6 +43,14 @@ class CorsServiceProvider implements ServiceProviderInterface, BootableProviderI
 
         $app["cors.domain"] = function () {
             return new Domain\Cors();
+        };
+
+        $app['cors.allow_origin_strategy'] = function () use ($app) {
+            if (null === $app['cors.allowOrigin'] || '*' === $app['cors.allowOrigin']) {
+                return new AllowAllStrategy();
+            }
+
+            return new ExactHostStrategy(explode(' ', $app['cors.allowOrigin']));
         };
     }
 
